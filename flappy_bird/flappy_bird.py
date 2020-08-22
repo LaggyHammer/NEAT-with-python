@@ -1,6 +1,5 @@
 import pygame
 import neat
-import time
 import os
 import random
 import pickle
@@ -237,9 +236,6 @@ def main(genomes, config):
         if len(birds) > 0:
             if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width():
                 pipe_ind = 1
-        # else:
-        #     run = False
-        #     break
 
         for x, bird in enumerate(birds):
             ge[x].fitness += 0.1
@@ -266,12 +262,12 @@ def main(genomes, config):
                     ge.pop(birds.index(bird))
                     birds.pop(birds.index(bird))
 
+                if not pipe.passed and pipe.x < bird.x:
+                    pipe.passed = True
+                    add_pipe = True
+
             if pipe.x + pipe.PIPE_TOP.get_width() < 0:
                 rem_pipe.append(pipe)
-
-            if not pipe.passed and pipe.x < bird.x:
-                pipe.passed = True
-                add_pipe = True
 
         if add_pipe:
             score += 1
@@ -290,8 +286,12 @@ def main(genomes, config):
 
         draw_window(win, birds, pipes, base, score, generation, pipe_ind)
 
+        if score > 30:
+            pickle.dump(nets[0], open("best_bird.pickle", "wb"))
+            return nets[0]
 
-def run(path):
+
+def run_neat(path):
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
                                 path)
@@ -310,4 +310,4 @@ def run(path):
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat_config.txt")
-    run(config_path)
+    run_neat(config_path)
